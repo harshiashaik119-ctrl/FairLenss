@@ -1,0 +1,51 @@
+# Local development stack. Production should point MONGODB_URI at a real
+# MongoDB Atlas cluster instead of the `mongo` service below -- simply omit
+# the `mongo` service and set MONGODB_URI in your deployment environment.
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DATABASE: fairlens
+      JWT_SECRET: ${JWT_SECRET:-dev-only-insecure-secret-change-me}
+      JWT_EXPIRE_MINUTES: "720"
+      LLM_PROVIDER: ${LLM_PROVIDER:-demo}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      CORS_ORIGINS: '["http://localhost:5173","http://localhost:80"]'
+      FRONTEND_URL: http://localhost:5173
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  uploads_data:

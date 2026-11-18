@@ -1,0 +1,29 @@
+# Env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+build/
+.vite/
+
+# Trained ML artifacts -- train locally with `python -m app.ml.train_evidence_model`
+# (see README). Not committed since it's regenerated from the training script
+# and pickle files aren't portable across scikit-learn/Python versions.
+*.joblib
+
+# Uploads (local file storage backend)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
